@@ -1,0 +1,8 @@
+
+service-prop:
+  swagger2:
+    global:
+      title: ${spring.application.name} 服务单元 RESTful APIs
+      description: ${spring.application.name} 服务单元 RESTful APIs 的说明文档
+      version: 1.0-SNAPSHOT
+      base-package: com.sinosoft.sss.could.controller
