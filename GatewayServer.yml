@@ -1,0 +1,105 @@
+# 路由网关
+# 默认的profile为dev，其他环境通过指定启动参数使用不同的profile，比如：
+#   测试环境：java -jar my-spring-boot.jar --spring.profiles.active=test
+#   生产环境：java -jar my-spring-boot.jar --spring.profiles.active=prod
+spring:
+  profiles:
+    active: dev
+
+  application:
+    name: GatewayServer
+
+## 注册中心若使用多节点(生产环境)，可以如下配置两个节点
+#registry-server:
+#  node1:
+#    instance-ip: 127.0.0.1
+#    instance-port: 39902
+#  node2:
+#    instance-ip: 127.0.0.1
+#    instance-port: 39903
+
+---
+# 多人协作开发时，使用共享的config-server。建议开发团队独立部署共享使用。
+spring:
+  profiles: dev
+
+  cloud:
+     config:
+       profile: dev
+       label: master
+       uri: http://127.0.0.1:39001/
+
+  zipkin:
+      base-url: http://127.0.0.1:39080
+
+server:
+  port: 30080
+
+zuul:
+  routes:
+    api-a:
+      path: /api-a/**
+      url: http://127.0.0.1:38002/
+    #   serviceId: DEMO2SERVICE
+    api-b:
+      path: /api-b/**
+      url: http://127.0.0.1:38001/
+    #   serviceId: DEMOSERVICE
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:39901/eureka
+
+
+---
+# 单人开发 或 没有可用的共享config-server时，使用自建的config-server
+spring:
+  profiles: dev-single
+
+  cloud:
+    config:
+      profile: dev
+      label: master
+      discovery:
+        enabled: true
+        service-id: ConfigServer
+
+  zipkin:
+      base-url: http://127.0.0.1:39080
+
+server:
+  port: 30080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:39901/eureka
+
+
+---
+# 生产环境配置
+
+spring:
+  profiles: pro
+
+  cloud:
+     config:
+       profile: pro
+       label: master
+       discovery:
+         enabled: true
+         service-id: ConfigServer
+
+  zipkin:
+      base-url: http://127.0.0.1:39080
+
+server:
+  port: 30080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${registry-server.node1.instance-ip}:${registry-server.node1.instance-port}/eureka/,http://${registry-server.node2.instance-ip}:${registry-server.node2.instance-port}/eureka/
+
+
